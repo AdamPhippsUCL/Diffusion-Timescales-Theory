@@ -1,0 +1,362 @@
+% New sphere diffusion simulation script
+
+% Separate simulation over grid and figure creation into different
+% sections.
+
+
+clear;
+
+
+%% Settings
+
+gamma=2.675; % *1e8 s^-1 T^-1;
+
+% Diffusivity
+D=2; % *1e-9 m^2 s^-1
+
+% Radius
+R=10; % *1e-6 m
+
+% Gradient lobe area
+A = 200; % *1 mT ms m^-1 = *1e-6 Ts m^-1
+
+% Tau timescale
+tau = R^2/(2*D);
+
+% Phase variance saturation (prediction from theory)
+phase_var_sat = 2*((gamma*1e8)^2)*((A*1e-6)^2)*( 0.2*((R*1e-6)^2) ); % 2 gamma^2 A^2 R^2/5
+
+% Phase variance linear gradient (prediction from theory)
+alpha = 2*((gamma*1e8)^2)*((A*1e-6)^2)*(2*1e-9)*(1e-3); % 2*gamma^2*A^2*D  
+
+
+% == Grid
+
+% delta
+deltamin = 0.1;
+deltamax = 51;
+deltastep = 1;
+deltas = deltamin:deltastep:deltamax;
+Ndelta = length(deltas);
+
+% Delta
+Deltamin = deltamin;
+Deltastep = 1;
+Deltamax = 80;
+Deltas = Deltamin:Deltastep:Deltamax;
+NDelta = length(Deltas);
+
+% Initialise phase variance array
+phase_vars = zeros(Ndelta, NDelta);
+
+
+%% Simulate over grid
+
+for dindx = 1:Ndelta
+
+    delta = deltas(dindx);
+    % thisDeltas = Deltas(Deltas>delta);
+    thisDeltas = [delta:Deltastep:Deltamax];
+    thisNDelta = length(thisDeltas);
+
+    % Gradient strength (fixed lobe area)
+    thisG = A/delta;
+
+    for Dindx = 1:thisNDelta
+        
+        % Simulate sphere phase variance
+        sphere_signal = sphereGPD(delta, thisDeltas(Dindx), thisG, R, D);
+        phase_vars(dindx, (NDelta-thisNDelta)+Dindx) = -2*log(sphere_signal);
+
+    end
+
+end
+
+
+
+%% Plot phase variance as function of DELTA
+
+% Initialise figure
+f1=figure;
+f1.Position  = [286.6 97 916.8 657.6];
+ax1 = axes;
+
+% Create color bar
+h = imagesc(ax1, [0 2*tau], [0 1], linspace(0,2*tau,256)');
+cmap=colormap(ax1, 'turbo');
+caxis([0 1])
+cb = colorbar(ax1);
+cb.Ticks = [0, 0.5, 1];
+cb.TickLabels = {'0', '$\Delta=\tau$', '$\Delta=2\tau$'};
+cb.TickLabelInterpreter = 'latex';
+cb.FontSize = 18;
+set(h, 'Visible','off')
+axis xy
+hold on
+
+phase_vars_firsts = zeros(Ndelta, 1);
+
+for dindx = 1:Ndelta
+
+    delta = deltas(dindx);
+    thisDeltas = [delta:Deltastep:Deltamax];
+    thisNDelta = length(thisDeltas);
+
+    plot(thisDeltas, phase_vars(dindx, (NDelta-thisNDelta)+1:NDelta), Color=cmap(ceil(256*delta/deltamax), :), LineWidth = 1, HandleVisibility='off')
+
+    phase_vars_firsts(dindx) = phase_vars(dindx, (NDelta-thisNDelta)+1);; 
+
+end
+
+% Connect start points of each curve
+plot(deltas, phase_vars_firsts, '--', color = 'k', HandleVisibility='off');
+
+% Mark tau and 2*tau
+[~, indx] = min(abs(deltas-tau));
+plot([tau, tau], [0, phase_vars_firsts(indx)], '--', LineWidth = 1, color = 'k', HandleVisibility='off')
+
+[~, indx] = min(abs(deltas-2*tau));
+plot([2*tau, 2*tau], [0, phase_vars_firsts(indx)], '--', LineWidth = 1, color = 'k', HandleVisibility='off')
+
+
+% Phase variance saturation
+yline(phase_var_sat, '--', color = 'k', LineWidth = 1, HandleVisibility='off')
+
+% Phase variance linear growth (delta, Delta << tau)
+plot(Deltas, alpha*(Deltas-deltas(1)/3), '--', color = 'k', LineWidth = 1, HandleVisibility='off')
+text(14.0, 0.135, '$2 \gamma^2 A^2 D ( \Delta - \frac{\delta}{3})$', Interpreter='latex', FontSize=18)
+
+% Axis limits
+xlim([0, max(Deltas)])
+ylim([0, 0.15])
+
+% Axis ticks
+yticks([0, phase_var_sat])
+yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
+xticks([0, tau, 2*tau])
+xticklabels({'0', '$\tau$', '$2\tau$'})
+set(ax1, 'TickLabelInterpreter', 'latex')
+ax1.FontSize = 20;
+ax1.YAxis.FontSize = 18;
+
+% Axis labels
+xlabel('$\Delta \rightarrow$', Position=[max(Deltas)-4,-0.004],Interpreter='latex', FontSize=20)
+ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-1 0.144] , Interpreter='latex', FontSize=20)
+
+
+
+
+%% Plot as function of delta
+
+thisDeltamax = 56; % Maximum DELTA value to plot for
+Imax = find(Deltas>thisDeltamax, 1, 'first');
+inds = 1:Imax;
+
+
+f2=figure;
+f2.Position  = [286.6 97 916.8 657.6];
+ax2 = axes;
+
+% Create colorbar
+h = imagesc(ax2, [0 2*tau], [0 1], linspace(0,2*tau,256)');
+colormap(ax2, 'turbo')
+caxis([0 thisDeltamax])
+cb = colorbar(ax2);
+cb.Ticks = [0, tau, 2*tau];
+cb.TickLabels = {'0', '$\Delta=\tau$', '$\Delta=2\tau$'};
+cb.TickLabelInterpreter = 'latex';
+cb.FontSize = 18;
+set(h, 'Visible','off')
+axis xy
+hold on
+
+y_lasts = [];
+
+for Dindx = inds
+
+    Delta = Deltas(Dindx);
+    this_phase_vars = phase_vars(:, Dindx);
+    bool = this_phase_vars~=0;
+
+    this_deltas = deltas(bool);
+    this_y = this_phase_vars(bool);
+
+    plot(ax2, [0 this_deltas], [this_y(1); this_y], Color = cmap(min([ceil(256*Delta/(thisDeltamax)), 256]), :), LineWidth = 1);
+    hold(ax2, 'on');
+
+    y_lasts = [y_lasts, this_y(end)];
+
+end
+
+% Connect end points
+plot([0, Deltas(inds)], [0, y_lasts], '--', color = 'k')
+
+% Marker at tau
+[~, indx] = min(abs(Deltas(inds)-tau));
+plot([tau, tau], [0, y_lasts(indx)], '--', LineWidth = 1, color = 'k', HandleVisibility='off')
+
+% Phase variance saturation
+yline(phase_var_sat, '--', color = 'k', LineWidth = 1, HandleVisibility='off')
+
+% Axis limits
+xlim([0 deltas(end-1)])
+ylim([0 0.15])
+
+% Axis ticks
+yticks([0, phase_var_sat])
+yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
+xticks([0, tau])
+xticklabels({'0', '$\tau$'})
+set(ax2, 'TickLabelInterpreter', 'latex')
+ax2.FontSize = 20;
+ax2.YAxis.FontSize = 18;
+
+xlabel('$\delta \rightarrow$', Position=[48,-0.002],Interpreter='latex', FontSize=20)
+ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.144] , Interpreter='latex', FontSize=18)
+
+
+
+%% Plot phase variance + linear as function of delta 
+
+% Predicted gradient
+pred_grad = (-2/3)*((gamma*1e8)^2)*((A*1e-6)^2)*(2*1e-9)*(1e-3);
+
+thisDeltamax = 56; % Maximum DELTA value to plot for
+Imax = find(Deltas>thisDeltamax, 1, 'first');
+inds = 1:Imax;
+
+f3=figure;
+f3.Position  = [286.6 97 916.8 657.6];
+ax3 = axes;
+
+% Create colorbar
+h = imagesc(ax3, [0 2*tau], [0 1], linspace(0,2*tau,256)');
+colormap(ax3, 'turbo')
+caxis([0 thisDeltamax])
+cb = colorbar(ax3);
+cb.Ticks = [0, tau, 2*tau];
+cb.TickLabels = {'0', '$\Delta=\tau$', '$\Delta=2\tau$'};
+cb.TickLabelInterpreter = 'latex';
+cb.FontSize = 18;
+set(h, 'Visible','off')
+axis xy
+hold on
+
+y_lasts = [];
+
+for Dindx = inds
+
+    Delta = Deltas(Dindx);
+    this_phase_vars = phase_vars(:, Dindx);
+    bool = this_phase_vars~=0;
+
+    this_deltas = deltas(bool);
+    this_y = this_phase_vars(bool)-pred_grad*deltas(bool)';
+
+    plot(ax3, [0 this_deltas], [this_y(1); this_y], Color = cmap(min([ceil(256*Delta/(thisDeltamax)), 256]), :), LineWidth = 1);
+    hold(ax3, 'on');
+
+    y_lasts = [y_lasts, this_y(end)];
+
+end
+
+% Connect end points
+plot([0, Deltas(inds)], [0, y_lasts], '--', color = 'k')
+
+% Marker at tau
+[~, indx] = min(abs(Deltas(inds)-tau));
+plot([tau, tau], [0, y_lasts(indx)], '--', LineWidth = 1, color = 'k', HandleVisibility='off')
+
+% Phase variance saturation
+yline(phase_var_sat, '--', color = 'k', LineWidth = 1, HandleVisibility='off')
+
+% Axis limits
+xlim([0 deltas(end-1)])
+ylim([0 0.25])
+
+% Axis ticks
+yticks([0, phase_var_sat])
+yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
+xticks([0, tau])
+xticklabels({'0', '$\tau$'})
+set(ax3, 'TickLabelInterpreter', 'latex')
+ax3.FontSize = 20;
+ax3.YAxis.FontSize = 18;
+
+xlabel('$\delta \rightarrow$', Position=[48,-0.003],Interpreter='latex', FontSize=20)
+ylabel('$\langle \Delta\phi^2 \rangle + \frac{2}{3} \gamma^2 A^2 D \delta \rightarrow$', Position=[-0.64 0.204] , Interpreter='latex', FontSize=18)
+
+
+
+%% Markers for sequences
+
+seq_deltas = [3.5, 10.5, 23.5, 14, 20, 11, 18];
+seq_Deltas = [26.9, 33.9, 46.9, 37.4, 43.4, 34.4, 41.4];
+
+seq_names = {'Classic b90', 'Classic b500', 'Classic b1500', 'Classic b2000', 'Classic b3000', 'Fast b1000', 'Fast b1800'};
+
+cols = colororder;
+
+f4=figure;
+f4.Position  = [286.6 97 916.8 657.6];
+ax4 = axes;
+
+for seqindx = 1:length(seq_deltas)
+
+    delta = seq_deltas(seqindx);
+    Delta = seq_Deltas(seqindx);
+
+    thisG = A/delta;
+    bval = stejskal(delta, Delta, G=thisG);
+
+    % sphere phase variance
+    sphere_signal = sphereGPD(delta, Delta, thisG, R, D);
+    pv_sphere = -2*log(sphere_signal);
+
+    % ball phase variance
+    ball_signal = ball(bval, D);
+    pv_ball = -2*log(ball_signal);   
+
+    plot([Delta, Delta], [pv_ball, pv_sphere], '-', color = cols(seqindx,:), DisplayName = seq_names{seqindx})
+    hold on
+    scatter(Delta, pv_ball, '*', MarkerEdgeColor = cols(seqindx,:), DisplayName= 'Gaussian', HandleVisibility='off')
+    scatter(Delta, pv_sphere, 'o', MarkerEdgeColor = cols(seqindx,:), DisplayName= 'Sphere', HandleVisibility='off')
+end
+
+
+% Axis limits
+xlim([0, thisDeltamax])
+ylim([0 0.5])
+
+% Connect start points of each curve
+plot(deltas, phase_vars_firsts, '--', color = 'k', HandleVisibility='off');
+
+% Mark tau and 2*tau
+[~, indx] = min(abs(deltas-tau));
+plot([tau, tau], [0, phase_vars_firsts(indx)], '--', LineWidth = 1, color = 'k', HandleVisibility='off')
+
+[~, indx] = min(abs(deltas-2*tau));
+plot([2*tau, 2*tau], [0, phase_vars_firsts(indx)], '--', LineWidth = 1, color = 'k', HandleVisibility='off')
+
+
+% Phase variance saturation
+yline(phase_var_sat, '--', color = 'k', LineWidth = 1, HandleVisibility='off')
+
+% Phase variance linear growth (delta, Delta << tau)
+plot(Deltas, alpha*(Deltas-deltas(1)/3), '--', color = 'k', LineWidth = 1, HandleVisibility='off')
+text(24, 0.46, '$2 \gamma^2 A^2 D ( \Delta - \frac{\delta}{3})$', Interpreter='latex', FontSize=18)
+
+% Axis ticks
+yticks([0, phase_var_sat])
+yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
+xticks([0, tau, 2*tau])
+xticklabels({'0', '$\tau$', '$2\tau$'})
+set(ax4, 'TickLabelInterpreter', 'latex')
+ax4.FontSize = 20;
+ax4.YAxis.FontSize = 18;
+
+
+legend(NumColumns=1, FontSize=12, Location="northwest")
+
+xlabel('$\delta \rightarrow$', Position=[56,-0.007],Interpreter='latex', FontSize=20)
+ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.484] , Interpreter='latex', FontSize=18)
