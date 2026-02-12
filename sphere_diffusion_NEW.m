@@ -34,7 +34,7 @@ alpha = 2*((gamma*1e8)^2)*((A*1e-6)^2)*(2*1e-9)*(1e-3); % 2*gamma^2*A^2*D
 
 % delta
 deltamin = 0.1;
-deltamax = 51;
+deltamax = 501;
 deltastep = 1;
 deltas = deltamin:deltastep:deltamax;
 Ndelta = length(deltas);
@@ -42,12 +42,15 @@ Ndelta = length(deltas);
 % Delta
 Deltamin = deltamin;
 Deltastep = 1;
-Deltamax = 80;
+Deltamax = 510;
 Deltas = Deltamin:Deltastep:Deltamax;
 NDelta = length(Deltas);
 
 % Initialise phase variance array
 phase_vars = zeros(Ndelta, NDelta);
+
+
+
 
 
 %% Simulate over grid
@@ -74,6 +77,29 @@ end
 
 
 
+% Showing 1/delta dependence
+this_ys = phase_vars(:,end).*deltas';
+f=figure;
+f.Position  = [286.6 97 916.8 657.6];
+ax = axes;
+ax.FontSize = 20;
+plot(deltas, this_ys, LineWidth=1.2, DisplayName=['\Delta = ' num2str(floor(Deltamax/tau)) '\tau'])
+xlim([0 450])
+xticks([0,4*tau,8*tau,  12*tau])
+xticklabels({ '0', '4\tau',  '8\tau',  '12\tau'})
+ylim([0 3.5])
+yticks([0, 1.005*max(this_ys)])
+yticklabels({'', ''})
+ax.FontSize = 18;
+xlabel('$\delta \rightarrow$', Position=[430,-0.04],Interpreter='latex', FontSize=22)
+ylabel('$\langle \Delta\phi^2 \rangle \cdot \delta \rightarrow$', Position=[-7 3.2] , Interpreter='latex', FontSize=20)
+yline(1.005*max(this_ys), '--', LineWidth=1, color = .2*[1,1,1], HandleVisibility='off')
+legend;
+saveas(f, 'sphere_phase_var_1_over_delta_dependence.png')
+
+
+
+
 %% Plot phase variance as function of DELTA
 
 % Initialise figure
@@ -87,7 +113,7 @@ cmap=colormap(ax1, 'turbo');
 caxis([0 1])
 cb = colorbar(ax1);
 cb.Ticks = [0, 0.5, 1];
-cb.TickLabels = {'0', '$\Delta=\tau$', '$\Delta=2\tau$'};
+cb.TickLabels = {'0', '$\delta=\tau$', '$\delta=2\tau$'};
 cb.TickLabelInterpreter = 'latex';
 cb.FontSize = 18;
 set(h, 'Visible','off')
@@ -140,7 +166,7 @@ ax1.FontSize = 20;
 ax1.YAxis.FontSize = 18;
 
 % Axis labels
-xlabel('$\Delta \rightarrow$', Position=[max(Deltas)-4,-0.004],Interpreter='latex', FontSize=20)
+xlabel('$\Delta \rightarrow$', Position=[max(Deltas)-3,-0.002],Interpreter='latex', FontSize=20)
 ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-1 0.144] , Interpreter='latex', FontSize=20)
 
 
@@ -160,7 +186,7 @@ ax2 = axes;
 
 % Create colorbar
 h = imagesc(ax2, [0 2*tau], [0 1], linspace(0,2*tau,256)');
-colormap(ax2, 'turbo')
+cmap=colormap(ax2, 'turbo');
 caxis([0 thisDeltamax])
 cb = colorbar(ax2);
 cb.Ticks = [0, tau, 2*tau];
@@ -233,7 +259,7 @@ ax3 = axes;
 
 % Create colorbar
 h = imagesc(ax3, [0 2*tau], [0 1], linspace(0,2*tau,256)');
-colormap(ax3, 'turbo')
+cmap=colormap(ax3, 'turbo');
 caxis([0 thisDeltamax])
 cb = colorbar(ax3);
 cb.Ticks = [0, tau, 2*tau];
@@ -253,7 +279,7 @@ for Dindx = inds
     bool = this_phase_vars~=0;
 
     this_deltas = deltas(bool);
-    this_y = this_phase_vars(bool)-pred_grad*deltas(bool)';
+    this_y = this_phase_vars(bool)-1*pred_grad*deltas(bool)';
 
     plot(ax3, [0 this_deltas], [this_y(1); this_y], Color = cmap(min([ceil(256*Delta/(thisDeltamax)), 256]), :), LineWidth = 1);
     hold(ax3, 'on');
