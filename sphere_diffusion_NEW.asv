@@ -319,7 +319,7 @@ ylabel('$\langle \Delta\phi^2 \rangle + \frac{2}{3} \gamma^2 A^2 D \delta \right
 
 
 
-%% In vivo and Ex vivo sequences
+%% In vivo sequences
 
 R=7;
 
@@ -354,7 +354,7 @@ seq_names = {...
     'b1750_Delta100',...
     'b2000_Delta120',...
     };
-% 
+
 % seq_names =  {'b90_Classic ',...
 %      'b500_Classic',...
 %      'b1500_Classic',...
@@ -464,16 +464,15 @@ plot(Deltas, alpha*(Deltas-deltas(1)/3), '--', color = 'k', LineWidth = 1, Handl
 % legend(NumColumns=1, FontSize=14, Location="northwest", Interpreter='latex')
 % grid on
 % xlabel('$\Delta \rightarrow$', Position=[56,-0.0065],Interpreter='latex', FontSize=20)
-% ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.464] , Interpreter='latex', FontSize=20)
+% ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.484] , Interpreter='latex', FontSize=18)
 % 
 % saveas(f4, 'phase_var_sequences_in_vivo.png')
 
 
 % == For EX VIVO
-f4.Position  = [286.6 40 916.8 800.6];
 xlim([0 125])
 ylim([0 1.1*max(seq_phase_vars_ball)])
-text(75, 0.562, '$2 \gamma^2 A^2 D \Delta $', Interpreter='latex', FontSize=17)
+text(70, 0.52, '$2 \gamma^2 A^2 D \Delta $', Interpreter='latex', FontSize=17)
 % Axis ticks
 yticks([0, phase_var_sat])
 yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
@@ -516,7 +515,7 @@ for seqindx = 1:Nseq
     plot( ...
         [seq_Deltas(seqindx) seq_Deltas(seqindx)], ...
         [0 (seq_phase_vars_sphere(seqindx)-mean_seq_pv_sphere)/norm_value], ...
-        '-', ...
+        '--', ...
         color = [.2 .2 .2], ...
         HandleVisibility='off'...
         )
@@ -538,32 +537,32 @@ yline(0, '--', HandleVisibility='on', DisplayName='Mean value')
 
 
 % In vivo
-ylim([-0.32, 0.32])
-legend(Location='southwest', Interpreter='none', FontSize=11)
-ax=gca();
-xticks([0, tau, 2*tau])
-xticklabels({'0', '$\tau$', '$2\tau$'})
-set(ax, 'TickLabelInterpreter', 'latex')
-ax.YAxis.FontSize=14;
-ax.XAxis.FontSize = 16;
-ylabel('Absolute change to sphere $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
-xlabel('$\Delta$', Position= [37.5, -0.34],Interpreter='latex', FontSize=18)
-saveas(f, 'in_vivo_seq_sphere_absolute_pv_change.png')
-
-% % Ex vivo
-% ylim([-0.22, 0.22])
-% yticks([-0.2:0.1:0.2])
-% legend(Location='southwest', Interpreter='none', FontSize=11, NumColumns=3)
+% ylim([-0.32, 0.32])
+% legend(Location='southwest', Interpreter='none', FontSize=11)
 % ax=gca();
-% xlim([0 135])
-% xticks([0, tau, 2*tau , 3*tau , 4*tau])
-% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+% xticks([0, tau, 2*tau])
+% xticklabels({'0', '$\tau$', '$2\tau$'})
 % set(ax, 'TickLabelInterpreter', 'latex')
 % ax.YAxis.FontSize=14;
 % ax.XAxis.FontSize = 16;
 % ylabel('Absolute change to sphere $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
-% xlabel('$\Delta \rightarrow$', Position= [130, -0.225],Interpreter='latex', FontSize=18)
-% saveas(f, 'ex_vivo_seq_sphere_absolute_pv_change.png')
+% xlabel('$\Delta$', Position= [37.5, -0.34],Interpreter='latex', FontSize=18)
+% saveas(f, 'in_vivo_seq_sphere_absolute_pv_change.png')
+
+% Ex vivo
+ylim([-0.22, 0.22])
+yticks([-0.2:0.1:0.2])
+legend(Location='southwest', Interpreter='none', FontSize=11, NumColumns=3)
+ax=gca();
+xlim([0 135])
+xticks([0, tau, 2*tau , 3*tau , 4*tau])
+xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+set(ax, 'TickLabelInterpreter', 'latex')
+ax.YAxis.FontSize=14;
+ax.XAxis.FontSize = 16;
+ylabel('Absolute change to sphere $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
+xlabel('$\Delta \rightarrow$', Position= [130, -0.225],Interpreter='latex', FontSize=18)
+saveas(f, 'ex_vivo_seq_sphere_absolute_pv_change.png')
 
 %% Sequence variation in A^2
 
@@ -587,7 +586,7 @@ for seqindx = 1:Nseq
         plot( ...
             [seq_Deltas(seqindx) seq_Deltas(seqindx)], ...
             [0 (seq_As(seqindx)^2-meanA2)/meanA2], ...
-            '-', ...
+            '--', ...
             color = [.2 .2 .2], ...
             HandleVisibility='off'...
         )
@@ -599,7 +598,7 @@ for seqindx = 1:Nseq
     plot( ...
         [seq_Deltas(seqindx) seq_Deltas(seqindx)], ...
         [0 (seq_As(seqindx)^2-meanA2)/meanA2], ...
-        '-', ...
+        '--', ...
         color = [.2 .2 .2], ...
         HandleVisibility='off'...
         )
@@ -621,35 +620,35 @@ end
 yline(0, '--', HandleVisibility='on', DisplayName='Mean value')
 
 
-
-% In vivo
-ylim([-1.2, 1.2])
-legend(Location='northwest', Interpreter='none', FontSize=11)
-ax=gca();
-xticks([0, tau, 2*tau])
-xticklabels({'0', '$\tau$', '$2\tau$'})
-set(ax, 'TickLabelInterpreter', 'latex')
-ax.YAxis.FontSize=14;
-ax.XAxis.FontSize = 16;
-ylabel('Relative change to  $A^2$', Interpreter='latex', FontSize=16)
-xlabel('$\Delta$', Position= [37.5, -1.25],Interpreter='latex', FontSize=18)
-saveas(f, 'in_vivo_seq_relative_A2_change.png')
-
-
-
-% % Ex vivo
-% ylim([-1.22, 1.22])
-% yticks([-1.2:0.4:1.2])
-% legend(Location='northeast', Interpreter='none', FontSize=11, NumColumns=2)
+% 
+% % In vivo
+% ylim([-1.2, 1.2])
+% legend(Location='northwest', Interpreter='none', FontSize=11)
 % ax=gca();
-% xlim([0 135])
-% xticks([0, tau, 2*tau , 3*tau , 4*tau])
-% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+% xticks([0, tau, 2*tau])
+% xticklabels({'0', '$\tau$', '$2\tau$'})
 % set(ax, 'TickLabelInterpreter', 'latex')
 % ax.YAxis.FontSize=14;
 % ax.XAxis.FontSize = 16;
 % ylabel('Relative change to  $A^2$', Interpreter='latex', FontSize=16)
-% xlabel('$\Delta \rightarrow$', Position= [130, -1.25],Interpreter='latex', FontSize=18)
+% xlabel('$\Delta$', Position= [37.5, -1.25],Interpreter='latex', FontSize=18)
+% saveas(f, 'in_vivo_seq_relative_A2_change.png')
+
+
+
+% Ex vivo
+ylim([-1.22, 1.22])
+yticks([-1.2:0.4:1.2])
+legend(Location='northeast', Interpreter='none', FontSize=11, NumColumns=2)
+ax=gca();
+xlim([0 135])
+xticks([0, tau, 2*tau , 3*tau , 4*tau])
+xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+set(ax, 'TickLabelInterpreter', 'latex')
+ax.YAxis.FontSize=14;
+ax.XAxis.FontSize = 16;
+ylabel('Relative change to  $A^2$', Interpreter='latex', FontSize=16)
+xlabel('$\Delta \rightarrow$', Position= [130, -1.24],Interpreter='latex', FontSize=18)
 % saveas(f, 'ex_vivo_seq_relative_A2_change.png')
 
 
@@ -713,33 +712,33 @@ yline(0, '--', HandleVisibility='on', DisplayName='Mean value')
 
 
 % In vivo
-ylim([-0.32, 0.32])
-legend(Location='northwest', Interpreter='none', FontSize=11)
-ax=gca();
-xticks([0, tau, 2*tau])
-xticklabels({'0', '$\tau$', '$2\tau$'})
-set(ax, 'TickLabelInterpreter', 'latex')
-ax.YAxis.FontSize=14;
-ax.XAxis.FontSize = 16;
-ylabel('Absolute change to ball $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
-xlabel('$\Delta$', Position= [37.5, -0.34],Interpreter='latex', FontSize=18)
-saveas(f, 'in_vivo_seq_ball_absolute_pv_change.png')
-
-
-
-% % Ex vivo
-% ylim([-2, 3])
-% legend(Location='northwest', Interpreter='none', FontSize=11, NumColumns=2)
+% ylim([-0.32, 0.32])
+% legend(Location='northwest', Interpreter='none', FontSize=11)
 % ax=gca();
-% xlim([0, 135])
-% xticks([0, tau, 2*tau , 3*tau , 4*tau])
-% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+% xticks([0, tau, 2*tau])
+% xticklabels({'0', '$\tau$', '$2\tau$'})
 % set(ax, 'TickLabelInterpreter', 'latex')
 % ax.YAxis.FontSize=14;
 % ax.XAxis.FontSize = 16;
 % ylabel('Absolute change to ball $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
-% xlabel('$\Delta \rightarrow$', Position= [130, -2.06],Interpreter='latex', FontSize=18)
-% saveas(f, 'ex_vivo_seq_ball_absolute_pv_change.png')
+% xlabel('$\Delta$', Position= [37.5, -0.34],Interpreter='latex', FontSize=18)
+% saveas(f, 'in_vivo_seq_ball_absolute_pv_change.png')
+
+
+
+% Ex vivo
+ylim([-2, 3])
+legend(Location='northwest', Interpreter='none', FontSize=11, NumColumns=2)
+ax=gca();
+xlim([0, 135])
+xticks([0, tau, 2*tau , 3*tau , 4*tau])
+xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+set(ax, 'TickLabelInterpreter', 'latex')
+ax.YAxis.FontSize=14;
+ax.XAxis.FontSize = 16;
+ylabel('Absolute change to ball $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
+xlabel('$\Delta$', Position= [130, -2.04],Interpreter='latex', FontSize=18)
+saveas(f, 'ex_vivo_seq_ball_absolute_pv_change.png')
 
 
 %% Look at signals
