@@ -12,10 +12,10 @@ clear;
 gamma=2.675; % *1e8 s^-1 T^-1;
 
 % Diffusivity
-D=1; % *1e-9 m^2 s^-1
+D=2; % *1e-9 m^2 s^-1
 
 % Radius
-R=7; % *1e-6 m
+R=10; % *1e-6 m
 
 % Gradient lobe area
 A = 200; % *1 mT ms m^-1 = *1e-6 Ts m^-1
@@ -34,7 +34,7 @@ alpha = 2*((gamma*1e8)^2)*((A*1e-6)^2)*(D*1e-9)*(1e-3); % 2*gamma^2*A^2*D
 
 % delta
 deltamin = 0.1;
-deltamax = 51;
+deltamax = round(2*tau)+1;
 deltastep = 1;
 deltas = deltamin:deltastep:deltamax;
 Ndelta = length(deltas);
@@ -42,7 +42,7 @@ Ndelta = length(deltas);
 % Delta
 Deltamin = deltamin;
 Deltastep = 1;
-Deltamax = 141;
+Deltamax = 150;
 Deltas = Deltamin:Deltastep:Deltamax;
 NDelta = length(Deltas);
 
@@ -319,18 +319,51 @@ ylabel('$\langle \Delta\phi^2 \rangle + \frac{2}{3} \gamma^2 A^2 D \delta \right
 
 
 
-%% In vivo and Ex vivo sequences
+%% In vivo and Ex vivo sequences (NEED TO MAKE THIS MORE SEPARATE FROM PREVIOUS CODE)
 
-R=7;
+clear;
 
-seq_deltas = [2,2,2,2,2,2,2,2,2,2]; % ex vivo
-            ...[3.5, 10.5, 23.5, 14, 20, 21.0, 24.0]; % in vivo
+% In vivo
+R=8;
+Dball=2;
+Dsphere=2;
 
-seq_Deltas = [15, 20, 30, 40, 50, 40, 60, 80, 100, 120]; % ex vivo
-            ...[26.9, 33.9, 46.9, 37.4, 43.4, 34.9, 46.3]; % in vivo
+% % Ex vivo 
+% component = 'epithelium';
+% 
+% switch component
+%     case 'epithelium'
+%         R=6.4;
+%         Dball=0.61;
+%         Dsphere=0.64;
+%     case 'stroma'
+%         % Ex vivo stroma
+%         R=6.4;
+%         Dball=0.943;
+%         Dsphere=0.532;
+% end
 
-seq_bvals = [1000, 1250, 1500, 1750, 2000, 1000, 1250, 1500, 1750, 2000]; % ex vivo
-            ...[90, 500, 1500, 2000, 3000, 1000, 1800]; % in vivo
+
+tau = (R^2)/(2*Dsphere);
+
+A=200;
+gamma=2.675;
+
+% Phase variance saturation (prediction from theory)
+phase_var_sat = 2*((gamma*1e8)^2)*((A*1e-6)^2)*( 0.2*((R*1e-6)^2) ); % 2 gamma^2 A^2 R^2/5
+
+% Phase variance linear gradient (prediction from theory)
+alpha = 2*((gamma*1e8)^2)*((A*1e-6)^2)*(Dball*1e-9)*(1e-3); % 2*gamma^2*A^2*D  
+
+
+seq_deltas = ...[2,2,2,2,2,2,2,2,2,2]; % ex vivo
+            [3.5, 10.5, 23.5, 14, 20, 21.0, 24.0]; % in vivo
+
+seq_Deltas = ...[15, 20, 30, 40, 50, 40, 60, 80, 100, 120]; % ex vivo
+            [26.9, 33.9, 46.9, 37.4, 43.4, 34.9, 46.3]; % in vivo
+
+seq_bvals = ...[1000, 1250, 1500, 1750, 2000, 1000, 1250, 1500, 1750, 2000]; % ex vivo
+            [90, 500, 1500, 2000, 3000, 1000, 1800]; % in vivo
 
 Nseq = length(seq_bvals);
 
@@ -342,40 +375,78 @@ for seqindx = 1:Nseq
    seq_As(seqindx) = stejskal(delta, Delta, bval=bval)*delta; 
 end
 
-seq_names = {...
-    'b1000_Delta15',...
-    'b1250_Delta20',...
-    'b1500_Delta30',...
-    'b1750_Delta40',...
-    'b2000_Delta50',...
-    'b1000_Delta40',...
-    'b1250_Delta60',...
-    'b1500_Delta80',...
-    'b1750_Delta100',...
-    'b2000_Delta120',...
-    };
-% 
-% seq_names =  {'b90_Classic ',...
-%      'b500_Classic',...
-%      'b1500_Classic',...
-%      'b2000_Classic',...
-%      'b3000_Classic',...
-%      'b1000_Fast',...
-%      'b1800_Fast'};
+% seq_names = {...
+%     'b1000_Delta15',...
+%     'b1250_Delta20',...
+%     'b1500_Delta30',...
+%     'b1750_Delta40',...
+%     'b2000_Delta50',...
+%     'b1000_Delta40',...
+%     'b1250_Delta60',...
+%     'b1500_Delta80',...
+%     'b1750_Delta100',...
+%     'b2000_Delta120',...
+%     };
+
+seq_names =  {'b90_Classic ',...
+     'b500_Classic',...
+     'b1500_Classic',...
+     'b2000_Classic',...
+     'b3000_Classic',...
+     'b1000_Fast',...
+     'b1800_Fast'};
+
+
+% delta
+deltamin = 0.1;
+deltamax = round(2*tau)+1;
+deltastep = 2;
+deltas = deltamin:deltastep:deltamax;
+Ndelta = length(deltas);
+
+% Delta
+Deltamin = deltamin;
+Deltastep = 2;
+Deltamax = 1.15*max(seq_Deltas);
+Deltas = Deltamin:Deltastep:Deltamax;
+NDelta = length(Deltas);
 
 cols = [colororder; colororder];
 
 f4=figure;
-f4.Position  = [286.6 97 916.8 657.6];
+f4.Position  = [286.6 40 916.8 657.6];
 ax4 = axes;
+cmap=colormap(ax4, 'turbo');
 
 
-% Add coloured lines
-for dindx = 1:2:Ndelta
+% == Add coloured lines
+
+phase_vars = zeros(Ndelta, NDelta);
+phase_vars_firsts = zeros(Ndelta, 1);
+
+for dindx = 1:Ndelta
 
     delta = deltas(dindx);
+    % thisDeltas = Deltas(Deltas>delta);
     thisDeltas = [delta:Deltastep:Deltamax];
     thisNDelta = length(thisDeltas);
+
+    % Gradient strength (fixed lobe area)
+    thisG = A/delta;
+
+    for Dindx = 1:thisNDelta
+        
+        % Simulate sphere phase variance
+        sphere_signal = sphereGPD(delta, thisDeltas(Dindx), thisG, R, Dsphere);
+        phase_vars(dindx, (NDelta-thisNDelta)+Dindx) = -2*log(sphere_signal);
+
+        if Dindx ==1
+            phase_vars_firsts(dindx)=-2*log(sphere_signal);
+        end
+
+    end
+
+
 
     plot(thisDeltas, ...
         phase_vars(dindx, (NDelta-thisNDelta)+1:NDelta), ...
@@ -384,8 +455,6 @@ for dindx = 1:2:Ndelta
         ...alpha = 0.2,...
         HandleVisibility='off')
     hold on
-
-    phase_vars_firsts(dindx) = phase_vars(dindx, (NDelta-thisNDelta)+1);; 
 
 end
 
@@ -402,12 +471,12 @@ for seqindx = 1:Nseq
     bval = stejskal(delta, Delta, G=thisG);
 
     % sphere phase variance
-    sphere_signal = sphereGPD(delta, Delta, thisG, R, D);
+    sphere_signal = sphereGPD(delta, Delta, thisG, R, Dsphere);
     pv_sphere = -2*log(sphere_signal);
     seq_phase_vars_sphere(seqindx)=pv_sphere;
 
     % ball phase variance
-    ball_signal = ball(bval, D);
+    ball_signal = ball(bval, Dball);
     pv_ball = -2*log(ball_signal);   
     seq_phase_vars_ball(seqindx)=pv_ball;
 
@@ -430,7 +499,7 @@ end
 
 
 % Axis limits
-xlim([0, thisDeltamax])
+xlim([0, max(Deltas)])
 ylim([0 0.5])
 
 % Connect start points of each curve
@@ -451,43 +520,70 @@ yline(phase_var_sat, '--', color = 'k', LineWidth = 1, HandleVisibility='off')
 plot(Deltas, alpha*(Deltas-deltas(1)/3), '--', color = 'k', LineWidth = 1, HandleVisibility='off')
 
 
-% % == For IN VIVO
-% text(31, 0.47, '$2 \gamma^2 A^2 D \Delta $', Interpreter='latex', FontSize=17)
-% % Axis ticks
-% yticks([0, phase_var_sat])
-% yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
-% xticks([0, tau, 2*tau])
-% xticklabels({'0', '$\tau$', '$2\tau$'})
-% set(ax4, 'TickLabelInterpreter', 'latex')
-% ax4.FontSize = 20;
-% ax4.YAxis.FontSize = 18;
-% legend(NumColumns=1, FontSize=14, Location="northwest", Interpreter='latex')
-% grid on
-% xlabel('$\Delta \rightarrow$', Position=[56,-0.0065],Interpreter='latex', FontSize=20)
-% ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.464] , Interpreter='latex', FontSize=20)
-% 
-% saveas(f4, 'phase_var_sequences_in_vivo.png')
 
 
-% == For EX VIVO
-f4.Position  = [286.6 40 916.8 800.6];
-xlim([0 125])
-ylim([0 1.1*max(seq_phase_vars_ball)])
-text(75, 0.562, '$2 \gamma^2 A^2 D \Delta $', Interpreter='latex', FontSize=17)
+
+% == For IN VIVO
+text(20, 0.35, '$2 \gamma^2 A^2 \Delta D_{ball} $', Interpreter='latex', FontSize=17)
 % Axis ticks
 yticks([0, phase_var_sat])
 yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
-xticks([0, tau, 2*tau, 4*tau])
-xticklabels({'0', '$\tau$', '$2\tau$', '$4\tau$'})
+xticks([0, tau, 2*tau])
+xticklabels({'0', '$\tau$', '$2\tau$'})
 set(ax4, 'TickLabelInterpreter', 'latex')
 ax4.FontSize = 20;
 ax4.YAxis.FontSize = 18;
 legend(NumColumns=1, FontSize=14, Location="northwest", Interpreter='latex')
 grid on
-xlabel('$\Delta \rightarrow$', Position=[120,-0.01],Interpreter='latex', FontSize=20)
-ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.70] , Interpreter='latex', FontSize=20)
+xlabel('$\Delta \rightarrow$', Position=[51,-0.0065],Interpreter='latex', FontSize=20)
+ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.464] , Interpreter='latex', FontSize=20)
+saveas(f4, 'phase_var_sequences_in_vivo.png')
 
-saveas(f4, 'phase_var_sequences_ex_vivo.png')
+
+% % == For EX VIVO
+% 
+% switch component
+%     case 'epithelium'
+% 
+%         f4.Position  = [286.6 40 916.8 800.6];
+%         xlim([0 125])
+%         ylim([0 1.1*max(seq_phase_vars_ball)])
+%         text(70, 0.335, '$2 \gamma^2 A^2 \Delta D_{ball} $', Interpreter='latex', FontSize=17)
+%         % Axis ticks
+%         yticks([0, phase_var_sat])
+%         yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
+%         xticks([0, tau, 2*tau, 3*tau])
+%         xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$'})
+%         set(ax4, 'TickLabelInterpreter', 'latex')
+%         ax4.FontSize = 20;
+%         ax4.YAxis.FontSize = 18;
+%         legend(NumColumns=1, FontSize=14, Location="northwest", Interpreter='latex')
+%         grid on
+%         xlabel('$\Delta \rightarrow$', Position=[120,-0.006],Interpreter='latex', FontSize=20)
+%         ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.44] , Interpreter='latex', FontSize=20)
+%         saveas(f4, 'phase_var_sequences_ex_vivo_epithelium.png')
+% 
+%     % case 'stroma'
+%     % 
+%     %     f4.Position  = [286.6 40 916.8 800.6];
+%     %     xlim([0 125])
+%     %     ylim([0 1.1*max(seq_phase_vars_ball)])
+%     %     text(47, 0.4, '$2 \gamma^2 A^2 \Delta D_{ball} $', Interpreter='latex', FontSize=17)
+%     %     % Axis ticks
+%     %     yticks([0, phase_var_sat])
+%     %     yticklabels({'', '$\frac{2}{5}\gamma^2 A^2 R^2$'})
+%     %     xticks([0, tau, 2*tau])
+%     %     xticklabels({'0', '$\tau$', '$2\tau$'})
+%     %     set(ax4, 'TickLabelInterpreter', 'latex')
+%     %     ax4.FontSize = 20;
+%     %     ax4.YAxis.FontSize = 18;
+%     %     legend(NumColumns=1, FontSize=14, Location="northwest", Interpreter='latex')
+%     %     grid on
+%     %     xlabel('$\Delta \rightarrow$', Position=[120,-0.008],Interpreter='latex', FontSize=20)
+%     %     ylabel('$\langle \Delta\phi^2 \rangle \rightarrow$', Position=[-0.64 0.68] , Interpreter='latex', FontSize=20)
+%     %     % saveas(f4, 'phase_var_sequences_ex_vivo_stroma.png')
+% 
+% end
 
 
 %% Sphere phase variance change with delta and Delta
@@ -496,7 +592,7 @@ norm_value = phase_var_sat*(5/2);
 
 mean_seq_pv_sphere = mean(seq_phase_vars_sphere);
 f=figure;
-f.Position = [680   368   659   510];
+f.Position = [680   200   659   510];
 
 
 for seqindx = 1:Nseq
@@ -538,39 +634,41 @@ yline(0, '--', HandleVisibility='on', DisplayName='Mean value')
 
 
 % In vivo
-ylim([-0.32, 0.32])
+ylim([-0.5, 0.5])
 legend(Location='southwest', Interpreter='none', FontSize=11)
 ax=gca();
-xticks([0, tau, 2*tau])
-xticklabels({'0', '$\tau$', '$2\tau$'})
+xlim([1.4*tau, 3.4*tau])
+xticks([ 2*tau, 3*tau])
+xticklabels({'$2\tau$', '$3\tau$'})
 set(ax, 'TickLabelInterpreter', 'latex')
 ax.YAxis.FontSize=14;
 ax.XAxis.FontSize = 16;
+yticks([-0.4:0.2:0.4])
 ylabel('Absolute change to sphere $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
-xlabel('$\Delta$', Position= [37.5, -0.34],Interpreter='latex', FontSize=18)
+xlabel('$\Delta \rightarrow$', Position= [3.35*tau, -0.512],Interpreter='latex', FontSize=18)
 saveas(f, 'in_vivo_seq_sphere_absolute_pv_change.png')
-
+% 
 % % Ex vivo
 % ylim([-0.22, 0.22])
 % yticks([-0.2:0.1:0.2])
-% legend(Location='southwest', Interpreter='none', FontSize=11, NumColumns=3)
+% legend(Location='northeast', Interpreter='none', FontSize=11, NumColumns=3)
 % ax=gca();
 % xlim([0 135])
-% xticks([0, tau, 2*tau , 3*tau , 4*tau])
-% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+% xticks([0, tau, 2*tau , 3*tau])
+% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$'})
 % set(ax, 'TickLabelInterpreter', 'latex')
 % ax.YAxis.FontSize=14;
 % ax.XAxis.FontSize = 16;
 % ylabel('Absolute change to sphere $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
 % xlabel('$\Delta \rightarrow$', Position= [130, -0.225],Interpreter='latex', FontSize=18)
-% saveas(f, 'ex_vivo_seq_sphere_absolute_pv_change.png')
+% saveas(f, 'ex_vivo_seq_sphere_absolute_pv_change_epithelium.png')
 
 %% Sequence variation in A^2
 
 meanA2 = mean(seq_As.^2);
 
 f=figure;
-f.Position = [680   368   659   510];
+f.Position = [680   200   659   510];
 
 for seqindx = 1:Nseq
 
@@ -626,31 +724,32 @@ yline(0, '--', HandleVisibility='on', DisplayName='Mean value')
 ylim([-1.2, 1.2])
 legend(Location='northwest', Interpreter='none', FontSize=11)
 ax=gca();
-xticks([0, tau, 2*tau])
-xticklabels({'0', '$\tau$', '$2\tau$'})
+xlim([1.4*tau, 3.4*tau])
+xticks([ 2*tau, 3*tau])
+xticklabels({'$2\tau$', '$3\tau$'})
 set(ax, 'TickLabelInterpreter', 'latex')
 ax.YAxis.FontSize=14;
 ax.XAxis.FontSize = 16;
 ylabel('Relative change to  $A^2$', Interpreter='latex', FontSize=16)
-xlabel('$\Delta$', Position= [37.5, -1.25],Interpreter='latex', FontSize=18)
+xlabel('$\Delta \rightarrow$', Position= [3.35*tau, -1.23],Interpreter='latex', FontSize=18)
 saveas(f, 'in_vivo_seq_relative_A2_change.png')
 
 
 
 % % Ex vivo
-% ylim([-1.22, 1.22])
-% yticks([-1.2:0.4:1.2])
+% ylim([-1.1, 1.1])
+% yticks([-1:0.5:1])
 % legend(Location='northeast', Interpreter='none', FontSize=11, NumColumns=2)
 % ax=gca();
 % xlim([0 135])
-% xticks([0, tau, 2*tau , 3*tau , 4*tau])
-% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+% xticks([0, tau, 2*tau , 3*tau])
+% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$'})
 % set(ax, 'TickLabelInterpreter', 'latex')
 % ax.YAxis.FontSize=14;
 % ax.XAxis.FontSize = 16;
 % ylabel('Relative change to  $A^2$', Interpreter='latex', FontSize=16)
-% xlabel('$\Delta \rightarrow$', Position= [130, -1.25],Interpreter='latex', FontSize=18)
-% saveas(f, 'ex_vivo_seq_relative_A2_change.png')
+% xlabel('$\Delta \rightarrow$', Position= [130, -1.13],Interpreter='latex', FontSize=18)
+% saveas(f, 'ex_vivo_seq_relative_A2_change_epithelium.png')
 
 
 
@@ -658,7 +757,7 @@ saveas(f, 'in_vivo_seq_relative_A2_change.png')
 
 mean_seq_pv_ball = mean(seq_phase_vars_ball);
 f=figure;
-f.Position = [680   368   659   510];
+f.Position = [680   200   659   510];
 
 for seqindx = 1:Nseq
 
@@ -713,16 +812,18 @@ yline(0, '--', HandleVisibility='on', DisplayName='Mean value')
 
 
 % In vivo
-ylim([-0.32, 0.32])
+ylim([-0.5, 0.5])
 legend(Location='northwest', Interpreter='none', FontSize=11)
 ax=gca();
-xticks([0, tau, 2*tau])
-xticklabels({'0', '$\tau$', '$2\tau$'})
+xlim([1.4*tau, 3.4*tau])
+xticks([ 2*tau, 3*tau])
+xticklabels({'$2\tau$', '$3\tau$'})
 set(ax, 'TickLabelInterpreter', 'latex')
 ax.YAxis.FontSize=14;
 ax.XAxis.FontSize = 16;
+yticks([-0.4:0.2:0.4])
 ylabel('Absolute change to ball $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
-xlabel('$\Delta$', Position= [37.5, -0.34],Interpreter='latex', FontSize=18)
+xlabel('$\Delta \rightarrow$', Position= [3.35*tau, -0.512],Interpreter='latex', FontSize=18)
 saveas(f, 'in_vivo_seq_ball_absolute_pv_change.png')
 
 
@@ -732,15 +833,112 @@ saveas(f, 'in_vivo_seq_ball_absolute_pv_change.png')
 % legend(Location='northwest', Interpreter='none', FontSize=11, NumColumns=2)
 % ax=gca();
 % xlim([0, 135])
-% xticks([0, tau, 2*tau , 3*tau , 4*tau])
-% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$', '$4\tau$'})
+% xticks([0, tau, 2*tau , 3*tau])
+% xticklabels({'0', '$\tau$', '$2\tau$', '$3\tau$'})
 % set(ax, 'TickLabelInterpreter', 'latex')
 % ax.YAxis.FontSize=14;
 % ax.XAxis.FontSize = 16;
 % ylabel('Absolute change to ball $\langle \Delta\phi^2 \rangle$ ($\gamma^2 A^2 R^2$)', Interpreter='latex', FontSize=16)
 % xlabel('$\Delta \rightarrow$', Position= [130, -2.06],Interpreter='latex', FontSize=18)
-% saveas(f, 'ex_vivo_seq_ball_absolute_pv_change.png')
+% saveas(f, 'ex_vivo_seq_ball_absolute_pv_change_epithelium.png')
 
+
+
+
+%% Compare relative A^2 and phase variance changes
+
+% == Unrestricted compartment
+
+f=figure;
+f.Position = [488.0000  108.2000  701.8000 553.8000];
+ax = axes;
+
+for seqindx = 1:Nseq
+
+    if strcmp(seq_names{seqindx},'b1000_Delta40') 
+        scatter( ...
+            (seq_phase_vars_ball(seqindx)-mean_seq_pv_ball)/mean_seq_pv_ball, ...
+            (seq_As(seqindx)^2-meanA2)/meanA2,...
+            100,...
+            '*',...
+            LineWidth =1.1,...
+            DisplayName=seq_names{seqindx},...
+            MarkerEdgeColor=cols(seqindx,:),...
+            MarkerFaceColor=cols(seqindx,:)...
+            );
+    end
+
+    scatter( ...
+        (seq_phase_vars_ball(seqindx)-mean_seq_pv_ball)/mean_seq_pv_ball, ...
+        (seq_As(seqindx)^2-meanA2)/meanA2,...
+        100,...
+        '*',...
+        LineWidth =1.1,...
+        DisplayName=seq_names{seqindx},...
+        MarkerEdgeColor=cols(seqindx,:),...
+        MarkerFaceColor=cols(seqindx,:)...
+        );
+    hold on
+
+
+end
+
+xline(0, '--', color = [.2 .2 .2], HandleVisibility='off')
+yline(0, '--', color = [.2 .2 .2], DisplayName = 'Mean value')
+
+xlim([-1.2 1.2])
+ylim([-1.2 1.2])
+legend(Location="northwest", Interpreter="none")
+ax.FontSize = 14;
+xlabel('Relative fractional change in ball $\langle \Delta\phi^2 \rangle$ (normalised by $A^2$)', Interpreter='latex', FontSize=15)
+ylabel('Relative fractional change in $A^2$', Interpreter='latex', FontSize=15)
+box on
+saveas(f, 'in_vivo_ball_A2_vs_phase_var.png')
+
+% Restricted compartment
+f=figure;
+f.Position = [488.0000  108.2000  701.8000 553.8000];
+ax = axes;
+
+for seqindx = 1:Nseq
+
+    if strcmp(seq_names{seqindx},'b1000_Delta40') 
+        scatter( ...
+            (seq_phase_vars_sphere(seqindx)-mean_seq_pv_sphere)/mean_seq_pv_sphere, ...
+            (seq_As(seqindx)^2-meanA2)/meanA2,...
+            'filled',...
+            LineWidth =1.1,...
+            DisplayName=seq_names{seqindx},...
+            MarkerEdgeColor=cols(seqindx,:),...
+            MarkerFaceColor=cols(seqindx,:)...
+            );
+    end
+
+    scatter( ...
+        (seq_phase_vars_sphere(seqindx)-mean_seq_pv_sphere)/mean_seq_pv_sphere, ...
+        (seq_As(seqindx)^2-meanA2)/meanA2,...
+        'filled',...
+        LineWidth =1.1,...
+        DisplayName=seq_names{seqindx},...
+        MarkerEdgeColor=cols(seqindx,:),...
+        MarkerFaceColor=cols(seqindx,:)...
+        );
+    hold on
+
+
+end
+
+xline(0, '--', color = [.2 .2 .2], HandleVisibility='off')
+yline(0, '--', color = [.2 .2 .2], DisplayName = 'Mean value')
+
+xlim([-1.2 1.2])
+ylim([-1.2 1.2])
+legend(Location="northwest", Interpreter="none")
+ax.FontSize = 14;
+xlabel('Relative fractional change in sphere $\langle \Delta\phi^2 \rangle$ (normalised by $A^2$)', Interpreter='latex', FontSize=15)
+ylabel('Relative fractional change in $A^2$', Interpreter='latex', FontSize=15)
+box on
+saveas(f, 'in_vivo_sphere_A2_vs_phase_var.png')
 
 %% Look at signals
 
@@ -795,8 +993,9 @@ xlabel('$\Delta \rightarrow$', Position=[56,-0.065],Interpreter='latex', FontSiz
 saveas(f5, 'signal_sequences.png')
 
 
-%% Look at apparent diffusivity of sphere compartment
 
+
+%% Look at apparent diffusivity of sphere compartment
 
 f6 = figure;
 f6.Position  = [286.6 97 916.8 657.6];
