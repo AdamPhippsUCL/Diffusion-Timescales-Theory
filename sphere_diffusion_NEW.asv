@@ -910,7 +910,7 @@ xlabel('Relative fractional change in sphere $\langle \Delta\phi^2 \rangle / A^2
 ylabel('Relative fractional change in $A^2$', Interpreter='latex', FontSize=15)
 ax.XLabel.Position = [0, -1.6, -1];
 box on
-saveas(f, 'ex_vivo_ball_A2_vs_phase_var_epithelium.png')
+saveas(f, 'ex_vivo_ball_A2_vs_phase_var.png')
 
 
 
@@ -974,7 +974,7 @@ xlabel('Relative fractional change in sphere $\langle \Delta\phi^2 \rangle / A^2
 ylabel('Relative fractional change in $A^2$', Interpreter='latex', FontSize=15)
 ax.XLabel.Position = [0, -1.6, -1];
 box on
-saveas(f, 'ex_vivo_sphere_A2_vs_phase_var_epithelium.png')
+saveas(f, 'ex_vivo_sphere_A2_vs_phase_var.png')
 
 %% Look at signals
 
